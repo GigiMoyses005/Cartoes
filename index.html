@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Controle de Cartões</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+```
+
+</head>
+
+<body>
+
+<div class="app">
+
+```
+<!-- SIDEBAR -->
+<aside class="sidebar">
+
+    <div class="logo">
+        <div class="logo-icon">
+            <i class="fa-solid fa-credit-card"></i>
+        </div>
+
+        <div class="logo-text">
+            <strong>Card</strong><span>Control</span>
+        </div>
+    </div>
+
+    <nav class="navigation">
+
+        <button class="menu-item active" data-page="dashboard">
+            <i class="fa-solid fa-house"></i>
+            <span>Dashboard</span>
+        </button>
+
+        <button class="menu-item" data-page="cards">
+            <i class="fa-solid fa-credit-card"></i>
+            <span>Cartões</span>
+        </button>
+
+        <button class="menu-item" data-page="purchases">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>Compras</span>
+        </button>
+
+        <button class="menu-item" data-page="people">
+            <i class="fa-solid fa-users"></i>
+            <span>Pessoas</span>
+        </button>
+
+        <button class="menu-item" data-page="invoices">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>Faturas</span>
+        </button>
+
+        <button class="menu-item" data-page="reports">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Relatórios</span>
+        </button>
+
+    </nav>
+
+    <div class="sidebar-footer">
+
+        <button class="menu-item" id="themeButton">
+            <i class="fa-solid fa-moon"></i>
+            <span>Modo escuro</span>
+        </button>
+
+    </div>
+
+</aside>
+
+
+<!-- MAIN -->
+<main class="main-content">
+
+    <!-- HEADER -->
+    <header class="topbar">
+
+        <div>
+            <h1 id="pageTitle">Dashboard</h1>
+            <p id="currentDate"></p>
+        </div>
+
+        <div class="user-profile">
+
+            <div class="avatar">
+                <i class="fa-solid fa-user"></i>
+            </div>
+
+            <div>
+                <strong>Controle Financeiro</strong>
+                <span>Cartões compartilhados</span>
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================= DASHBOARD ================= -->
+
+    <section class="page active-page" id="dashboard">
+
+        <div class="page-heading">
+
+            <div>
+                <h2>Visão geral</h2>
+                <p>Acompanhe seus cartões e gastos.</p>
+            </div>
+
+            <button class="primary-button" onclick="openPurchaseModal()">
+                <i class="fa-solid fa-plus"></i>
+                Nova compra
+            </button>
+
+        </div>
+
+
+        <!-- RESUMO -->
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+
+                <div class="summary-icon red">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+
+                <div>
+                    <span>Fatura atual</span>
+                    <strong id="dashboardInvoice">R$ 0,00</strong>
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon blue">
+                    <i class="fa-solid fa-credit-card"></i>
+                </div>
+
+                <div>
+                    <span>Cartões cadastrados</span>
+                    <strong id="dashboardCards">0</strong>
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon orange">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+
+                <div>
+                    <span>Parcelas futuras</span>
+                    <strong id="dashboardFuture">R$ 0,00</strong>
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon purple">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+
+                <div>
+                    <span>Pessoas</span>
+                    <strong id="dashboardPeople">0</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SELETOR DE CARTÃO -->
+
+        <div class="dashboard-filter">
+
+            <div>
+                <label for="dashboardCard">Cartão</label>
+
+                <select id="dashboardCard">
+                    <option value="">Todos os cartões</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="dashboardMonth">Mês da fatura</label>
+
+                <input type="month" id="dashboardMonth">
+
+            </div>
+
+        </div>
+
+
+        <!-- GRÁFICO + FATURA -->
+
+        <div class="dashboard-columns">
+
+            <div class="panel chart-panel">
+
+                <div class="panel-header">
+                    <div>
+                        <h3>Gastos por mês</h3>
+                        <p>Valor das parcelas lançadas nas faturas.</p>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <h3>Fatura selecionada</h3>
+                        <p id="selectedInvoiceDescription">
+                            Todos os cartões
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="invoice-total">
+                    <span>Total</span>
+                    <strong id="selectedInvoiceTotal">R$ 0,00</strong>
+                </div>
+
+                <div id="dashboardInvoiceList"
+                     class="mini-invoice-list">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- COMPRAS RECENTES -->
+
+        <div class="panel recent-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>Compras recentes</h3>
+                    <p>Últimas compras registradas.</p>
+                </div>
+
+                <button class="text-button"
+                        onclick="changePage('purchases')">
+                    Ver todas
+                </button>
+
+            </div>
+
+            <div id="recentPurchases"></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= CARTÕES ================= -->
+
+    <section class="page" id="cards">
+
+        <div class="page-heading">
+
+            <div>
+                <h2>Cartões</h2>
+                <p>Cadastre os cartões utilizados pela família.</p>
+            </div>
+
+            <button class="primary-button"
+                    onclick="openCardModal()">
+
+                <i class="fa-solid fa-plus"></i>
+                Novo cartão
+
+            </button>
+
+        </div>
+
+
+        <div class="credit-card-grid"
+             id="cardsContainer">
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= COMPRAS ================= -->
+
+    <section class="page" id="purchases">
+
+        <div class="page-heading">
+
+            <div>
+                <h2>Compras</h2>
+                <p>Controle todas as compras feitas nos cartões.</p>
+            </div>
+
+            <button class="primary-button"
+                    onclick="openPurchaseModal()">
+
+                <i class="fa-solid fa-plus"></i>
+                Nova compra
+
+            </button>
+
+        </div>
+
+
+        <div class="filter-panel">
+
+            <div class="search-box">
+
+                <i class="fa-solid fa-search"></i>
+
+                <input
+                    type="text"
+                    id="searchPurchase"
+                    placeholder="Pesquisar compra, loja ou produto..."
+                >
+
+            </div>
+
+
+            <select id="filterCard">
+                <option value="">Todos os cartões</option>
+            </select>
+
+
+            <select id="filterPerson">
+                <option value="">Todas as pessoas</option>
+            </select>
+
+
+            <input
+                type="month"
+                id="filterMonth"
+            >
+
+        </div>
+
+
+        <div class="table-panel">
+
+            <div class="table-responsive">
+
+                <table>
+
+                    <thead>
+
+                    <tr>
+                        <th>Data</th>
+                        <th>Quem comprou</th>
+                        <th>Cartão</th>
+                        <th>Estabelecimento</th>
+                        <th>Produto</th>
+                        <th>Valor</th>
+                        <th>Parcelamento</th>
+                        <th>Fatura</th>
+                        <th>Ações</th>
+                    </tr>
+
+                    </thead>
+
+                    <tbody id="purchasesTable">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= PESSOAS ================= -->
+
+    <section class="page" id="people">
+
+        <div class="page-heading">
+
+            <div>
+                <h2>Pessoas</h2>
+                <p>Quem utiliza os cartões compartilhados?</p>
+            </div>
+
+            <button class="primary-button"
+                    onclick="openPersonModal()">
+
+                <i class="fa-solid fa-plus"></i>
+                Nova pessoa
+
+            </button>
+
+        </div>
+
+
+        <div class="people-grid"
+             id="peopleContainer">
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= FATURAS ================= -->
+
+    <section class="page" id="invoices">
+
+        <div class="page-heading">
+
+            <div>
+                <h2>Faturas</h2>
+                <p>Veja quanto será cobrado em cada ciclo.</p>
+            </div>
+
+        </div>
+
+
+        <div class="invoice-controls">
+
+            <div>
+                <label>Cartão</label>
+
+                <select id="invoiceCard">
+                    <option value="">Todos os cartões</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Mês</label>
+
+                <input
+                    type="month"
+                    id="invoiceMonth"
+                >
+            </div>
+
+        </div>
+
+
+        <div id="invoiceDetails"></div>
+
+    </section>
+
+
+    <!-- ================= RELATÓRIOS ================= -->
+
+    <section class="page" id="reports">
+
+        <div class="page-heading">
+
+            <div>
+                <h2>Relatórios</h2>
+                <p>Analise seus gastos.</p>
+            </div>
+
+        </div>
+
+
+        <div class="report-grid">
+
+            <div class="report-card">
+
+                <div class="report-icon green">
+                    <i class="fa-solid fa-file-excel"></i>
+                </div>
+
+                <h3>Exportar Excel</h3>
+
+                <p>
+                    Exporte todas as compras e parcelas.
+                </p>
+
+                <button class="primary-button"
+                        onclick="exportExcel()">
+
+                    Exportar Excel
+
+                </button>
+
+            </div>
+
+
+            <div class="report-card">
+
+                <div class="report-icon blue">
+                    <i class="fa-solid fa-user-group"></i>
+                </div>
+
+                <h3>Gastos por pessoa</h3>
+
+                <p>
+                    Descubra quanto cada pessoa gastou.
+                </p>
+
+                <button class="secondary-button"
+                        onclick="generatePersonReport()">
+
+                    Gerar relatório
+
+                </button>
+
+            </div>
+
+
+            <div class="report-card">
+
+                <div class="report-icon orange">
+                    <i class="fa-solid fa-calendar"></i>
+                </div>
+
+                <h3>Parcelas futuras</h3>
+
+                <p>
+                    Veja o que já está comprometido.
+                </p>
+
+                <button class="secondary-button"
+                        onclick="generateFutureReport()">
+
+                    Ver parcelas
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel report-result"
+             id="reportResult">
+
+            <div class="empty-state small">
+                <i class="fa-solid fa-chart-pie"></i>
+                <p>Escolha um relatório acima.</p>
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+```
+
+</div>
+
+<!-- =====================================================
+     MODAL CARTÃO
+===================================================== -->
+
+<div class="modal" id="cardModal">
+
+```
+<div class="modal-content">
+
+    <div class="modal-header">
+
+        <div>
+            <h2>Novo cartão</h2>
+            <p>Cadastre os dados do cartão.</p>
+        </div>
+
+        <button class="modal-close"
+                onclick="closeModal('cardModal')">
+            ×
+        </button>
+
+    </div>
+
+
+    <form id="cardForm">
+
+        <div class="form-group">
+
+            <label for="cardName">
+                Nome do cartão *
+            </label>
+
+            <input
+                id="cardName"
+                type="text"
+                placeholder="Ex.: Nubank"
+                required
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="cardBank">
+                Banco
+            </label>
+
+            <input
+                id="cardBank"
+                type="text"
+                placeholder="Ex.: Nubank"
+            >
+
+        </div>
+
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label for="cardLimit">
+                    Limite *
+                </label>
+
+                <input
+                    id="cardLimit"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="5000"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="closingDay">
+                    Fechamento *
+                </label>
+
+                <input
+                    id="closingDay"
+                    type="number"
+                    min="1"
+                    max="31"
+                    placeholder="25"
+                    required
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="dueDay">
+                Vencimento *
+            </label>
+
+            <input
+                id="dueDay"
+                type="number"
+                min="1"
+                max="31"
+                placeholder="1"
+                required
+            >
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button type="button"
+                    class="secondary-button"
+                    onclick="closeModal('cardModal')">
+                Cancelar
+            </button>
+
+            <button type="submit"
+                    class="primary-button">
+                Salvar cartão
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+```
+
+</div>
+
+<!-- =====================================================
+     MODAL PESSOA
+===================================================== -->
+
+<div class="modal" id="personModal">
+
+```
+<div class="modal-content">
+
+    <div class="modal-header">
+
+        <div>
+            <h2>Nova pessoa</h2>
+            <p>Cadastre quem utiliza os cartões.</p>
+        </div>
+
+        <button class="modal-close"
+                onclick="closeModal('personModal')">
+            ×
+        </button>
+
+    </div>
+
+
+    <form id="personForm">
+
+        <div class="form-group">
+
+            <label for="personName">
+                Nome *
+            </label>
+
+            <input
+                id="personName"
+                type="text"
+                placeholder="Ex.: João"
+                required
+            >
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button type="button"
+                    class="secondary-button"
+                    onclick="closeModal('personModal')">
+                Cancelar
+            </button>
+
+            <button type="submit"
+                    class="primary-button">
+                Salvar pessoa
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+```
+
+</div>
+
+<!-- =====================================================
+     MODAL COMPRA
+===================================================== -->
+
+<div class="modal" id="purchaseModal">
+
+```
+<div class="modal-content large">
+
+    <div class="modal-header">
+
+        <div>
+            <h2>Nova compra</h2>
+            <p>Registre uma nova compra no cartão.</p>
+        </div>
+
+        <button class="modal-close"
+                onclick="closeModal('purchaseModal')">
+            ×
+        </button>
+
+    </div>
+
+
+    <form id="purchaseForm">
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label for="purchaseDate">
+                    Data da compra *
+                </label>
+
+                <input
+                    id="purchaseDate"
+                    type="date"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="purchasePerson">
+                    Quem comprou? *
+                </label>
+
+                <select
+                    id="purchasePerson"
+                    required>
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="purchaseCard">
+                Cartão utilizado *
+            </label>
+
+            <select
+                id="purchaseCard"
+                required>
+            </select>
+
+        </div>
+
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label for="purchaseStore">
+                    Onde comprou? *
+                </label>
+
+                <input
+                    id="purchaseStore"
+                    type="text"
+                    placeholder="Ex.: Amazon"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="purchaseDescription">
+                    O que comprou? *
+                </label>
+
+                <input
+                    id="purchaseDescription"
+                    type="text"
+                    placeholder="Ex.: Mouse Gamer"
+                    required
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label for="purchaseValue">
+                    Valor total *
+                </label>
+
+                <input
+                    id="purchaseValue"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="300.00"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="purchaseInstallments">
+                    Quantidade de parcelas *
+                </label>
+
+                <input
+                    id="purchaseInstallments"
+                    type="number"
+                    min="1"
+                    max="60"
+                    value="1"
+                    required
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="installment-preview"
+             id="installmentPreview">
+
+            <div class="preview-title">
+                <i class="fa-solid fa-calculator"></i>
+                Simulação
+            </div>
+
+            <p>
+                Preencha o valor e a quantidade de parcelas
+                para visualizar.
+            </p>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button type="button"
+                    class="secondary-button"
+                    onclick="closeModal('purchaseModal')">
+                Cancelar
+            </button>
+
+            <button type="submit"
+                    class="primary-button">
+                <i class="fa-solid fa-check"></i>
+                Salvar compra
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+```
+
+</div>
+
+<script src="js/app.js"></script>
+
+</body>
+</html>
